@@ -66,6 +66,27 @@ class BlogView(APIView):
         
         except Exception as e:
             return Response({"data": {}, "message": f"Something went wrong"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+    def delete(self, request):
+        try:
+            data = request.data
+            blog = Blog.objects.filter(uid=data.get('uid')).first()  # Select the first object from the queryset
+            
+            if not blog:
+                return Response({"data": {}, "message": "Invalid blog UID"}, status=status.HTTP_400_BAD_REQUEST)
+        
+            if not request.user == blog.user: 
+                return Response({"data": {}, "message": "You are not authorized to do this"}, status=status.HTTP_400_BAD_REQUEST)        
+                
+            blog.delete()  # Delete the blog directly
+            return Response({"data": {}, "message": "Blog deleted successfully"}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(e)  # Print the exception for debugging purposes
+            return Response({"data": {}, "message": f"Something went wrong"}, status=status.HTTP_400_BAD_REQUEST)
+
 
   
 class BlogSearchView(APIView):

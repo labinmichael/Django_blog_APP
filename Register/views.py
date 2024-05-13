@@ -2,6 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import RegisterSerializer,Loginserializer
 from rest_framework import status
+from rest_framework_simplejwt.tokens import OutstandingToken, BlacklistedToken
+from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 
 class RegisterView(APIView):
@@ -49,3 +52,29 @@ class LoginView(APIView):
                     "message":"something went wrong"
 
                 },status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+
+
+
+from django.core.cache import cache
+from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
+
+class LogoutView(APIView):
+    authentication_classes = [JWTTokenUserAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            # Invalidate the current token
+            token = str(request.auth)
+            cache.add(token, None, timeout=60 * 5)  # Blacklist token for 5 minutes
+
+            return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"message": "Unable to logout"}, status=status.HTTP_400_BAD_REQUEST)
