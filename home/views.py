@@ -6,6 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import Blog
 from django.db.models import Q
+from rest_framework.pagination import PageNumberPagination
+
 
 class BlogView(APIView):
     permission_classes = [IsAuthenticated]
@@ -113,3 +115,22 @@ class BlogSearchView(APIView):
                 "data": {},
                 "message": "Something went wrong"
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class BlogPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+class VisitorBlogView(APIView):
+    
+    def get(self, request):
+        try:
+            blogs = Blog.objects.all().order_by('-created_at')
+            paginator = BlogPagination()
+            result_page = paginator.paginate_queryset(blogs, request)
+            serializer = BlogSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        except Exception as e:
+            return Response({"data": {}, "message": "Something went wrong"}, status=status.HTTP_400_BAD_REQUEST)
