@@ -5,7 +5,11 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import OutstandingToken, BlacklistedToken
 from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
 from rest_framework.permissions import IsAuthenticated
-
+from django.core.cache import cache
+from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
+from rest_framework import status
+from rest_framework.views import APIView
+from django.contrib.auth.models import User
 
 class RegisterView(APIView):
     def post(self,request):
@@ -55,15 +59,13 @@ class LoginView(APIView):
         
 
 
+class UserListView(APIView):
+    def get(self, request):
+        users = User.objects.all()
+        serializer = RegisterSerializer(users, many=True)
+        return Response(serializer.data)
 
 
-
-from django.core.cache import cache
-from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.views import APIView
 
 class LogoutView(APIView):
     authentication_classes = [JWTTokenUserAuthentication]
